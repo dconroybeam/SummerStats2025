@@ -1,4 +1,4 @@
-"PIN","sex","age","tipiE1","tipiA2r","tipiC3","tipiN4","tipiO5","tipiE6r","tipiA7","tipiC8r","tipiN9r","tipiO10r","extra","agre","consc","neuro","open","shock","shockCause","pMoral","preShare","postShare","guilt"
+"PIN","gender","age","tipiE1","tipiA2r","tipiC3","tipiN4","tipiO5","tipiE6r","tipiA7","tipiC8r","tipiN9r","tipiO10r","extra","agre","consc","neuro","open","shock","shockCause","pMoral","preShare","postShare","guilt"
 1,"0",19,3,3,5,2,4,3,5,6,3,4,3,4,5.5,2.5,4,"2","1","1",5,8,6
 2,"0",18,5,4,4,5,5,3,4,2,2,4,4,4,3,3.5,4.5,"2","1","1",6,10,6
 3,"0",20,1,4,4,4,4,5,3,2,5,2,3,3.5,3,4.5,3,"2","1","1",4,8,5
