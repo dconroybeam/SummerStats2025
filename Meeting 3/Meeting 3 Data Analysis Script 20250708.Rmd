@@ -1,0 +1,326 @@
+---
+title: "Meeting 3 Analysis Script"
+author: "Daniel Conroy-Beam"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(reshape2)
+```
+
+
+
+```{r load}
+
+#Load in the data
+data<-read.csv("Meeting 2/Meeting 2 Data PROCESSED.csv")
+
+#Recode variable
+data$PIN<-as.factor(data$PIN)
+data$gender<-as.factor(data$gender)
+data$shockCause<-as.factor(data$shockCause)
+data$shock<-as.factor(data$shock)
+data$moral<-as.factor(data$moral)
+
+```
+
+
+
+## Descriptives
+
+Descriptive statistics for guilt:
+```{r descriptivesGuilt}
+
+c(summary(data$guilt),"SD"=sd(data$guilt,na.rm=T))
+
+```
+
+
+Descriptive statistics for generosity:
+```{r descriptivesGenerosity}
+
+#Pre-shock:
+c(summary(data$preShare),"SD"=sd(data$preShare,na.rm=T))
+
+#Post-shock:
+c(summary(data$postShare),"SD"=sd(data$postShare,na.rm=T))
+
+```
+
+
+
+Descriptive statistics for personality:
+```{r descriptivesPersonality}
+
+#Agreeableness
+c(summary(data$agree),"SD"=sd(data$agree,na.rm=T))
+
+#Neuroticism
+c(summary(data$neuro),"SD"=sd(data$neuro,na.rm=T))
+
+```
+
+
+
+## Guilt Analysis
+
+### Prediction 1.1
+
+We expected people would feel more guilt when they caused the shock vs. their partner.
+
+This prediction was supported. People felt more guilt when they caused a shock to their partner.
+
+```{r p1.1}
+
+#Run the t-test for prediction 1.1
+p1.1<-t.test(data$guilt ~ data$shockCause)
+
+#Output the result
+p1.1
+```
+
+
+
+### Prediction 1.2
+
+We expected that people would feel more guilt when their partner was morally good vs. morally bad.
+
+This prediction was supported. People felt more guilt when their partner was morally good.
+```{r p1.2}
+
+#Run the t-test for prediction 1.2
+p1.2<-t.test(data$guilt~data$moral)
+
+#Output the result
+p1.2
+```
+
+
+
+### Prediction 1.3
+
+We expected participants would report more guilt when their partner received a strong shock.
+
+This prediction was supported. Guilt increased with increasing shock magnitude.
+```{r p1.3}
+
+#Run the ANOVA for prediction 1.3
+p1.3<-lm(guilt~shock,data=data)
+
+#Output the result
+anova(p1.3)
+
+#Output the group means
+tapply(data$guilt, data$shock, function(x) mean(x,na.rm=T))
+
+```
+
+
+
+### Prediction 2
+
+We expected that women will report more guilt than men
+
+This prediction was not supported. There was no significant difference in guilt between men and women.
+```{r p2}
+
+#Run the t-test
+p2<-t.test(data$guilt~data$gender)
+
+#Output the result
+p2
+```
+
+
+
+### Prediction 3
+We expected agreeable people would report more guilt.
+
+This prediction was supported. Agreeableness was weakly but significantly positively correlated with reported levels of guilt.
+```{r p3}
+
+#Run the correlation test for prediction 3
+p3<-cor.test(data$agree,data$guilt)
+
+#Output the result
+p3
+
+```
+
+
+
+### Prediction 4
+We expected neurotic people would report more guilt.
+
+This prediction was not supported. There was no relationship between neuroticism and guilt
+```{r p4}
+
+#Run the correlation test
+p4<-cor.test(data$neuro,data$guilt)
+
+#Output the result
+p4
+
+#Test predictions 3 and 4 simultaneously using a regression
+guiltReg<-lm(guilt~neuro + agree, data=data)
+
+#Output regression result
+summary(guiltReg)
+```
+
+
+
+
+## Generosity
+
+```{r melt}
+
+#Melt the data for within-subjects analysis
+dataMelt<-melt(data,
+               measure.vars=c("preShare","postShare"),
+               variable.name=c("prePost"),
+               value.name=c("share"))
+
+```
+
+
+
+### Prediction 5.1
+
+We expected that people would be more generous when they caused the shock vs. when the partner caused the shock.
+
+This prediction was supported. Participants were more generous to their partner after the shock when the participant thought they themselves (rather than the partner) caused the shock.
+```{r p5.1}
+
+#Run the within-subjectes ANOVA for prediction 5.1
+p5.1<-aov(share ~ shockCause*prePost + Error(PIN), data=dataMelt)
+
+#Output the ANOVA results:
+summary(p5.1)
+
+#Output the means separated by condition
+tapply(dataMelt$share,dataMelt[,c("shockCause","prePost")],
+       function(x) mean(x,na.rm=T))
+```
+
+
+
+### Prediction 5.2
+
+We expected participants would be more generous when the partner was morally good vs. morally bad.
+
+This prediction was supported. Post-shock, participants were more generous toward morally good partners.
+
+```{r p5.2}
+
+#Run the within-subjects ANOVA
+p5.2<-aov(share~prePost*moral+Error(PIN),data=dataMelt)
+
+#Output the results
+summary(p5.2)
+
+#Output means as a function of condition
+tapply(dataMelt$share,
+       dataMelt[,c("moral","prePost")],
+       function(x) mean(x,na.rm=T))
+
+```
+
+
+
+### Prediction 5.3
+
+We expected participants would be more generous when the shock was stronger.
+
+This prediction was supported. Amount of generosity after the shock increases with shock magnitude.
+```{r p5.3}
+
+#Run the within-subjects ANOVA
+p5.3<-aov(share~prePost*shock+Error(PIN),data=dataMelt)
+
+#Output the results
+summary(p5.3)
+
+#Output means as a function of condition
+tapply(dataMelt$share,
+       dataMelt[,c("shock","prePost")],
+       function(x) mean(x,na.rm=T))
+
+```
+
+
+
+### Prediction 6
+
+We predicted that women would be more generous than men.
+
+This prediction was not supported. There was not a significant interaction between gender and generosity.
+
+```{r p6}
+
+#Run the within-subjects ANOVA
+p6<-aov(share~prePost*gender+Error(PIN),data=dataMelt)
+
+#Output the results
+summary(p6)
+
+#Output means as a function of condition
+tapply(dataMelt$share,
+       dataMelt[,c("gender","prePost")],
+       function(x) mean(x,na.rm=T))
+
+```
+
+
+
+### Prediction 7
+
+We expected that agreeable people would be more generous than disagreeable people.
+
+This prediction was partially supported. Agreeable people were more generous after the shock but not before.
+
+```{r p7}
+
+#Run correlation test for pre-shock generosity
+p7pre<-cor.test(data$preShare,data$agree)
+
+#Output the results
+p7pre
+
+#Run the correlation test for post-shock generosity
+p7post<-cor.test(data$postShare,data$agree)
+
+#Output the results
+p7post
+
+```
+
+
+
+### Prediction 8
+
+We expected that neurotic people would be more generous than emotionally stable people.
+
+This prediction was not supported. There is no correlation between neuroticism and generosity either before or after the shock.
+
+```{r p8}
+
+#Run correlation test for pre-shock generosity
+p8pre<-cor.test(data$preShare,data$neuro)
+
+#Output the results
+p8pre
+
+#Run the correlation test for post-shock generosity
+p8post<-cor.test(data$postShare,data$neuro)
+
+#Output the results
+p8post
+
+```
